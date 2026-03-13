@@ -3,7 +3,7 @@
 
 
 """
-KATANA v8.0  ·  Threat Intelligence Platform
+KATANA v0.8  ·  Threat Intelligence Platform
 Sophos Firewall Log Analyzer
 ─────────────────────────────────────────────
 Stack:
@@ -45,7 +45,7 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 # ─────────────────────────────────────────────────────────────────────────────
 #  BASE DE DATOS  (whitelist + historial persistentes vía sqlite3)
 # ─────────────────────────────────────────────────────────────────────────────
-DB_PATH = Path.home() / ".katana_v8.db"
+DB_PATH = Path.home() / ".katana_0.8.db"
 
 def _init_db():
     con = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -640,7 +640,7 @@ def _build_pdf(df: pd.DataFrame, df_mapa, path: str):
                           textColor=DARK, spaceAfter=3)
 
     # ── Header ────────────────────────────────────────────────────────────
-    body.append(Paragraph("KATANA v8.0 — Executive Forensic Report", h1))
+    body.append(Paragraph("KATANA v0.8 — Executive Forensic Report", h1))
     body.append(Paragraph(
         f"Generated {datetime.now().strftime('%Y-%m-%d  %H:%M:%S')}"
         f"  |  {len(df):,} events analyzed", sub))
@@ -1318,7 +1318,7 @@ class SplashScreen(QWidget):
         lo.addWidget(self._bar)
         lo.addSpacing(16)
 
-        footer = QLabel("v8.0  ·  Sophos Firewall Log Analyzer  ·  Enterprise Edition")
+        footer = QLabel("v0.8  ·  Sophos Firewall Log Analyzer  ·  Enterprise Edition")
         footer.setStyleSheet(
             f"font-family:{SANS}; font-size:9px; font-weight:400;"
             f"color:#48484A; background:transparent;")
@@ -1397,7 +1397,7 @@ class KatanaApp(QMainWindow):
         lo = QHBoxLayout(bar); lo.setContentsMargins(20,0,20,0); lo.setSpacing(16)
         lo.addWidget(StatusDot(T("SUCCESS")))
         lo.addWidget(lbl("KATANA", size=13, bold=True))
-        lo.addWidget(lbl("v8.0", size=11, dim=True))
+        lo.addWidget(lbl("v0.8", size=11, dim=True))
         lo.addWidget(sep(vertical=True)); lo.addWidget(spacer(h=4))
         self._tb_file = lbl("No log loaded", size=10, dim=True)
         lo.addWidget(self._tb_file)
@@ -1745,7 +1745,7 @@ class KatanaApp(QMainWindow):
     def _build_tab_history(self, tab):
         lo = QVBoxLayout(tab); lo.setContentsMargins(20,20,20,20); lo.setSpacing(12)
         lo.addWidget(lbl("Analysis History", size=13, bold=True))
-        lo.addWidget(lbl("Persistent across sessions — stored in ~/.katana_v8.db",
+        lo.addWidget(lbl("Persistent across sessions — stored in ~/.katana_v0.8.db",
                          dim=True, size=10))
         lo.addSpacing(4)
 
@@ -1999,7 +1999,7 @@ class KatanaApp(QMainWindow):
             self.df_map, locations="Pais", locationmode="country names",
             color="Total_Ataques", hover_name="Pais",
             color_continuous_scale="Blues",
-            title="KATANA v8.0  ·  Global Attack Distribution")
+            title="KATANA v0.8  ·  Global Attack Distribution")
         fig.update_layout(
             paper_bgcolor="#1C1C1E", plot_bgcolor="#1C1C1E",
             font=dict(family="IBM Plex Sans,sans-serif", color="#F2F2F7"),
@@ -2020,7 +2020,7 @@ class KatanaApp(QMainWindow):
                 cnt, lat="Lat", lon="Lon", color="Events",
                 hover_name="IP_Atacante", size="Events", size_max=28,
                 color_continuous_scale="Blues", projection="orthographic",
-                title="KATANA v8.0  ·  3D Attack Globe")
+                title="KATANA v0.8  ·  3D Attack Globe")
             fig.update_layout(
                 paper_bgcolor="#1C1C1E",
                 font=dict(family="IBM Plex Sans,sans-serif", color="#F2F2F7"),
