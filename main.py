@@ -521,53 +521,80 @@ def _pg_line(x_vals, y_vals) -> pg.PlotWidget:
     pw.setMouseEnabled(x=False, y=False)
     return pw
 
-
 def _pg_donut(labels, values) -> pg.PlotWidget:
-    """Donut / pie via pyqtgraph PlotWidget con arcos dibujados a mano."""
-    import math
+    """
+    Gráfico de donut con sectores dibujados como anillos mediante QGraphicsEllipseItem.
+    Texto en Poppins Bold.
+    """
+    from PyQt6.QtWidgets import QGraphicsEllipseItem
+    from PyQt6.QtGui import QFont
+
     surf = _T["SURFACE"]
     pw = pg.PlotWidget()
     pw.setBackground(surf)
-    pw.hideAxis('bottom'); pw.hideAxis('left')
+    pw.hideAxis('bottom')
+    pw.hideAxis('left')
     pw.setAspectLocked(True)
     pw.setMouseEnabled(x=False, y=False)
 
     total = sum(values) or 1
-    angle = 90.0  # empezar arriba
-    for lab, val in zip(labels, values):
-        span   = val / total * 360
-        color  = SEV_COLOR.get(lab, _T["INK_DIM"])
-        # Dibujar arco como segmentos de polígono
-        pts_x, pts_y = [], []
-        steps = max(4, int(span / 2))
-        for s in range(steps + 1):
-            a = math.radians(angle + s * span / steps)
-            pts_x.append(math.cos(a) * 0.9)
-            pts_y.append(math.sin(a) * 0.9)
-        for s in range(steps, -1, -1):
-            a = math.radians(angle + s * span / steps)
-            pts_x.append(math.cos(a) * 0.5)
-            pts_y.append(math.sin(a) * 0.5)
-        curve = pg.PlotDataItem(pts_x + [pts_x[0]], pts_y + [pts_y[0]],
-                                fillLevel=0.0,
-                                brush=pg.mkBrush(color),
-                                pen=pg.mkPen(surf, width=2))
-        pw.addItem(curve)
+    start_angle = 90  # Comenzar desde arriba (las 12 en punto)
 
-        # Label
-        mid_a  = math.radians(angle + span / 2)
-        lx     = math.cos(mid_a) * 1.15
-        ly     = math.sin(mid_a) * 1.15
-        pct    = f"{val/total*100:.0f}%"
-        txt    = pg.TextItem(f"{lab}\n{pct}", anchor=(0.5, 0.5),
-                             color=_T["INK2"])
-        txt.setFont(QFont("Consolas", 7))
-        txt.setPos(lx, ly)
-        pw.addItem(txt)
-        angle += span
+    # Radios
+    R_OUT = 1.0
+    R_IN = 0.6
+
+    for label, value in zip(labels, values):
+        span = value / total * 360.0
+
+        # Convertir a 1/16 de grado (Qt requiere esto)
+        start_16 = int(start_angle * 16)
+        span_16 = int(-span * 16)  # negativo para sentido horario
+
+        # --- Sector exterior (el anillo de color) ---
+        outer_ellipse = QGraphicsEllipseItem(-R_OUT, -R_OUT, 2*R_OUT, 2*R_OUT)
+        outer_ellipse.setStartAngle(start_16)
+        outer_ellipse.setSpanAngle(span_16)
+        outer_ellipse.setPen(pg.mkPen(None))
+        color = SEV_COLOR.get(label, _T["INK_DIM"])
+        outer_ellipse.setBrush(pg.mkBrush(color))
+        pw.addItem(outer_ellipse)
+
+        # --- Sector interior (para recortar el centro y crear el agujero) ---
+        inner_ellipse = QGraphicsEllipseItem(-R_IN, -R_IN, 2*R_IN, 2*R_IN)
+        inner_ellipse.setStartAngle(start_16)
+        inner_ellipse.setSpanAngle(span_16)
+        inner_ellipse.setPen(pg.mkPen(None))
+        inner_ellipse.setBrush(pg.mkBrush(surf))  # Mismo color que el fondo
+        pw.addItem(inner_ellipse)
+
+        # --- Texto: etiqueta y porcentaje ---
+        # Calcular el ángulo medio del sector (en radianes)
+        mid_angle_deg = start_angle - span / 2
+        mid_angle_rad = np.radians(mid_angle_deg)
+
+        # Posición a mitad del anillo (radio promedio)
+        r_mid = (R_OUT + R_IN) / 2
+        x = r_mid * np.cos(mid_angle_rad)
+        y = r_mid * np.sin(mid_angle_rad)
+
+        pct = f"{value/total*100:.0f}%"
+        display_text = f"{label}\n{pct}"
+
+        text_item = pg.TextItem(display_text, anchor=(0.5, 0.5), color=_T["INK2"])
+
+        # Forzar Poppins Bold (o la sans-serif bold más cercana)
+        font = QFont("Poppins, Segoe UI, Helvetica Neue, sans-serif", 8)
+        font.setBold(True)
+        text_item.setFont(font)
+
+        text_item.setPos(x, y)
+        pw.addItem(text_item)
+
+        # Actualizar ángulo de inicio para el siguiente sector
+        start_angle -= span
 
     return pw
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  PDF  (reportlab — UTF-8 nativo, sin hackear latin-1)
